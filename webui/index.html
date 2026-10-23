@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Black October 2026 - Incident Command Simulator</title>
+  <link rel="stylesheet" href="styles/main.css">
+  <script type="module" src="scripts/app.js"></script>
+</head>
+<body>
+  <header class="hud" aria-label="Heads-up display">
+    <div class="hud-title">
+      <strong>BLACK OCTOBER 2026</strong>
+      <span>Incident Command Simulator</span>
+    </div>
+
+    <dl class="hud-metrics">
+      <div><dt>Sim clock (IST)</dt><dd>&mdash;</dd></div>
+      <div><dt>Executive Trust</dt><dd>&mdash;</dd></div>
+      <div><dt>Undeclared P0</dt><dd>&mdash;</dd></div>
+      <div><dt>Burn rate</dt><dd>&mdash;</dd></div>
+      <div><dt>Alerts</dt><dd>&mdash;</dd></div>
+    </dl>
+
+    <div class="hud-actions">
+      <button type="button" id="open-stack">Stack Inventory</button>
+      <button type="button" id="open-ledger">CFO Ledger</button>
+    </div>
+
+    <div id="engine-status" class="engine-status" data-state="checking" role="status">
+      Engine API: checking&hellip;
+    </div>
+  </header>
+
+  <main class="panes">
+    <section class="pane browser" aria-label="Simulated browser">
+      <div class="tabs" role="tablist" aria-label="Simulated browser tabs">
+        <button type="button" role="tab" id="tab-feed" aria-controls="panel-feed" aria-selected="true">infosec.feed/live</button>
+        <button type="button" role="tab" id="tab-gitlab" aria-controls="panel-gitlab" aria-selected="false" tabindex="-1">gitlab.internal/infra/pipelines</button>
+        <button type="button" role="tab" id="tab-cloud" aria-controls="panel-cloud" aria-selected="false" tabindex="-1">console.cloud.internal/env</button>
+        <button type="button" role="tab" id="tab-cab" aria-controls="panel-cab" aria-selected="false" tabindex="-1">admin.corp.internal/cab.php</button>
+      </div>
+
+      <div role="tabpanel" id="panel-feed" aria-labelledby="tab-feed" class="tab-panel">
+        <h2>Infosec feed</h2>
+        <p class="placeholder">Not implemented. Planned: advisories and early-warning posts driven by scenario events.</p>
+      </div>
+      <div role="tabpanel" id="panel-gitlab" aria-labelledby="tab-gitlab" class="tab-panel" hidden>
+        <h2>GitLab pipelines</h2>
+        <p class="placeholder">Not implemented. Planned: pipeline, runner and artifact state from the simulated CI.</p>
+      </div>
+      <div role="tabpanel" id="panel-cloud" aria-labelledby="tab-cloud" class="tab-panel" hidden>
+        <h2>Cloud console</h2>
+        <p class="placeholder">Not implemented. Planned: workers, deployment locks and masked synthetic environment variables.</p>
+      </div>
+      <div role="tabpanel" id="panel-cab" aria-labelledby="tab-cab" class="tab-panel" hidden>
+        <h2>Change Advisory Board</h2>
+        <p class="placeholder">Not implemented. Planned: change tickets and the Emergency RFC Override form.</p>
+      </div>
+    </section>
+
+    <section class="pane terminal" aria-label="Ops console">
+      <h2>Ops Console</h2>
+      <pre id="terminal-output" class="terminal-output" tabindex="0">Terminal not connected.
+The command grammar and POST /api/game/command are not implemented yet.
+No commands are available.</pre>
+      <div class="prompt">
+        <label for="terminal-input">$</label>
+        <input id="terminal-input" type="text" disabled placeholder="not available" autocomplete="off" spellcheck="false">
+      </div>
+    </section>
+  </main>
+
+  <dialog id="stack-dialog" aria-labelledby="stack-title">
+    <h2 id="stack-title">Stack Inventory</h2>
+    <p class="placeholder">No engine state connected. The inventory will be generated from game state, not hardcoded here. Not implemented.</p>
+    <form method="dialog"><button type="submit">Close</button></form>
+  </dialog>
+
+  <dialog id="ledger-dialog" aria-labelledby="ledger-title">
+    <h2 id="ledger-title">CFO Ledger</h2>
+    <p class="placeholder">No engine state connected. The ledger will be derived from engine state and elapsed simulation time. Not implemented.</p>
+    <form method="dialog"><button type="submit">Close</button></form>
+  </dialog>
+</body>
+</html>

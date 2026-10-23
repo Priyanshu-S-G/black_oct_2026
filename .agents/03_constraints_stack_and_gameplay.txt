@@ -1,0 +1,147 @@
+BLACK OCTOBER 2026 — CONSTRAINTS, TECH STACK, GAMEPLAY AND ROLE DESIGNATION
+=============================================================================
+
+1. HARD CONSTRAINTS & RESOURCE BUDGET
+-------------------------------------
+- Deadline: One weekend sprint. Fully playable end-to-end by Sunday night.
+- Budget: ₹0. No paid cloud APIs, domain registrations, or LLM token subscriptions.
+- Local-first and LAN-first. Remote deployment (e.g., Railway) is an optional experiment; gameplay must function completely offline.
+- Hardware:
+  * HP Victus 15 (Windows 11 / 16 GB RAM): Primary development workstation, code compilation, and browser cockpit.
+  * HP 240 G4 (Linux Mint Xfce / 4 GB RAM / 128 GB SSD): Low-memory local server running native processes over LAN/SSH.
+- Memory & Hardware Protection Rules:
+  * Do NOT run real Docker daemons on the HP 240 G4; Docker containers, Kubernetes pods, and cloud workers are simulated in-game.
+  * Run all real host components as native processes. Total system RAM usage across the entire stack must remain under 1 GB.
+  * Java JVM heap must be explicitly constrained: java -Xms16m -Xmx64m -jar sla-calculator.jar.
+  * PHP runs via its lightweight built-in server: php -S 0.0.0.0:8000 cab.php.
+- Safety: 100% synthetic logs, mock credentials, and simulated state transitions; no live exploits or external network scans.
+
+2. REAL HOST STACK VS. SIMULATED SYSTEMS
+----------------------------------------
+
+REAL IMPLEMENTATION (Runs on physical hardware):
+* Go: Authoritative simulation engine; manages clock, game state, scenario YAMLs, consequences, and REST/SSE endpoints.
+* Node.js: Web cockpit server; serves static HTML/CSS/JS interface, proxies TUI commands, and streams telemetry.
+* PHP: Minimal script implementing the CAB ticket queue and Emergency Override POST endpoint.
+* Java: Lightweight HTTP service exposing POST /calculate-sla to calculate contractual financial penalties.
+* NGINX: Local reverse proxy routing port 80 to Node (:3000), Go (:8080), PHP (:8000), and Java (:8081).
+
+SIMULATED SYSTEMS (Represented as game state & mock UI panels only):
+* GitLab CI runners, Railway cloud consoles, Docker container instances, AI agent workers, Windows/.NET banking gateways, and Postgres databases.
+
+3. CORE GAMEPLAY LOOP & INCIDENT DECLARATION RULE
+-------------------------------------------------
+
+Step 1: Early Warning Smoke Signal
+- Incidents surface first as breaking posts on infosec.feed/live or as anomalous spikes in the [CFO Ledger].
+- Internal monitoring systems may lag behind public disclosure.
+
+Step 2: Mandatory HUD Incident Declaration
+- The player must open the HUD Incident Manager and declare the vulnerability by mapping the CVE to the affected internal service (e.g., incident declare CVE-2026-109618 php-cab-portal).
+- Rule 1: TUI remediation commands remain locked with "ERROR: No active change ticket for target resource" until declared.
+- Rule 2: Undeclared active incidents bleed Executive Trust by 2% per tick due to "Management Blindness".
+
+Step 3: Forensic Cross-Referencing
+- Player inspects [Stack Inventory] to verify deployed versions against advisory notices.
+- Runs diagnostic TUI commands (status, cert-check, curl, npm audit).
+- Audits the [CFO Ledger] for runaway AI token burn, cloud egress, or compounding SLA breach penalties.
+
+Step 4: Remediation & CAB Bureaucracy
+- Player prepares patches or worker isolation via the TUI.
+- Production patches require CAB ticket approval in admin.corp.internal/cab.php.
+- Player dilemma: Wait for offline approvers (taking downtime SLA penalties) or submit an RFC Emergency Override form (saving uptime, dinging Executive Trust).
+
+Step 5: Managing Cascading Dependency Traps
+- Actions carry realistic side effects; taking lazy shortcuts triggers cascading secondary outages.
+
+4. SCRIPTED SCENARIOS & INTER-EXPLOIT DEPENDENCIES
+--------------------------------------------------
+
+SCENARIO 1: Supply Chain Poisoning & Rogue AI Token Burn
+* Inspiration: LiteLLM v1.107.0 PyPI compromise, SubQuery @subql/common@5.8.3 hook, Railway secrets leak.
+* Symptoms: CFO Ledger shows AI Token Burn skyrocketing from ₹45/hr to ₹12,000/hr in an infinite loop; DATABASE_PROD_URL marked SUSPECTED_LEAK.
+* The Trap: Running "vault rotate DATABASE_PROD_URL" immediately in TUI without staging crashes the Go backend and PHP portal, causing full outage and SLA breach fines.
+* Fix: Pause deployments in Cloud Tab -> isolate worker (docker stop worker-ai) -> pin safe version in GitLab (litellm==1.106.0) -> rebuild clean artifact -> execute coordinated secret rotation.
+
+SCENARIO 2: Cryptographic Trust Revocation & mTLS Drop
+* Inspiration: eMudhra intermediate CA 3-bit entropy compromise (CVE-2026-111943 / GO-2026-6809).
+* Symptoms: Banking mTLS webhooks fail with CERT_REVOKED; Java SLA engine begins compounding contractual non-compliance penalties.
+* The Lazy Trap: Setting TLS_VERIFY_PEER=false or curl -k in config restores traffic but triggers an instant ₹500,000 compliance audit penalty and unlocks "Certificate Verification Disabled: Problem Solved (No)".
+* Fix: Declare incident -> inject updated CA bundle into Go trust store -> bounce signing broker -> verify clean handshake.
+
+SCENARIO 3: Pipeline Blackout & Patch Tuesday
+* Inspiration: PHP2Shell (CVE-2026-109618), Node.js Brotli RCE (CVE-2026-111497), GitLab Unauthenticated RCE (CVE-2026-110264).
+* Symptoms: Attackers probe PHP portal and Node document preview API; attempting to deploy fixes fails because GitLab CI runners throw 500 errors from unauthenticated RCE.
+* Dilemma: Spend 15 minutes isolating and patching GitLab CI, or use an Emergency RFC Override to force unverified manual binary patches directly onto servers via TUI.
+
+SCENARIO 4: Edge Proxy Misconfiguration & Blind Status Page
+* Inspiration: NGINX buffer overflow and HTTP/3 injection (CVE-2026-15176, CVE-2026-95101).
+* Symptoms: An error in /etc/nginx/nginx.conf drops all internal upstream proxy routing; the browser console loses connection to the Go engine.
+* The Trap: The external Marketing Status Page remains 100% green because it monitors an isolated static mock, unlocking "Green Status Page, Red Everything Else".
+* Fix: Audit NGINX syntax, fix upstream socket blocks via TUI, reload proxy, and align monitoring health checks.
+
+OPTIONAL EXTENSION SCENARIOS:
+* Oracle Java SE / GraalVM CVE-2026-91403: Enterprise SLA engine patch triage and backwards-compatibility check.
+* Microsoft QUIC CVE-2026-105016: Banking gateway HTTP/3 RCE triage; disabling HTTP/3 stops attack but triggers latency SLA breach.
+* Linux Kernel CVE-2026-99999 (PwnEscape): Untrusted document rendering sandbox escapes into host kernel memory; requires draining and rolling host reboot.
+
+5. REVENUE, EXPENSE & SCORING METRICS
+-------------------------------------
+* Tracked Metrics: Cumulative Downtime, Java SLA Penalties, Rogue AI Token Burn, Secrets Rotated, Unlogged Incident Time, Executive Trust.
+* Satirical Achievements:
+  - "Restarting the Database Is Not a Personality"
+  - "We Have Rotated Zero Secrets"
+  - "The AI Consultant Has Your Keys"
+  - "Certificate Verification Disabled: Problem Solved (No)"
+  - "Green Status Page, Red Everything Else"
+  - "Congratulations, You Have Become the Single Point of Failure"
+* Deliverable: Automatically generates an exportable POSTMORTEM.md file at shift completion containing full metrics, timeline, and a sarcastic performance review.
+
+6. IMPLEMENTATION ORDER — ONE WEEKEND
+-------------------------------------
+FRIDAY EVENING
+- Create repository on Victus; implement Go simulation engine skeleton, game state structs, tick loop, and scenario YAML parser.
+- Implement Scenario 1 (Supply Chain / Credential Leak) playable via a raw terminal client.
+
+SATURDAY MORNING
+- Implement lightweight Node.js web server and static split-pane cockpit UI.
+- Wire browser tabs (feed, gitlab, cloud, cab.php) and TUI to Go engine via REST/SSE.
+
+SATURDAY AFTERNOON
+- Implement minimal PHP CAB script and Java SLA calculation utility (-Xmx64m).
+- Connect HUD [Stack Inventory] and [CFO Ledger] modals.
+
+SATURDAY EVENING
+- Deploy native binaries to HP 240 G4 Linux Mint box over SSH.
+- Verify total system RAM usage remains under 1 GB and test LAN connectivity from Victus browser.
+
+SUNDAY MORNING
+- Load remaining core scenarios, dependency traps, and CI failure states into Go scenario YAMLs.
+
+SUNDAY AFTERNOON / NIGHT
+- Implement automated POSTMORTEM.md generator, achievement scoring, audio alerts, and end-to-end verification.
+
+7. ARCHITECTURAL SAFETY AND QUALITY
+-----------------------------------
+- No actual exploits, payloads, malware, credential collection, third-party scanning, or production-system disruption.
+- No arbitrary shell execution from browser commands or LLM suggestions.
+- Use synthetic secrets and fictional customers/domains/IPs.
+- Bind development services to localhost/LAN as needed; do not expose the HP 240 G4 to the public internet by default.
+- Avoid real private keys, API keys, personal data, and real customer data in logs.
+- Use least privilege and a minimal environment. If a component is compromised in a scenario, that is simulation state only.
+- Do not disable TLS verification as a remediation.
+- Keep incident evidence and simulated timelines separate from real machine logs.
+- Document which incidents are verified, reported, screenshot-only, meme/hypothetical, or research-pending.
+
+8. PROJECT NORTH STAR
+---------------------
+The game should be funny because the engineering trade-offs are real:
+- The patch is urgent, but deployment tests are missing.
+- The secrets may be exposed, but the rotation plan is undocumented.
+- The status page is green because it monitors the wrong thing.
+- The CI pipeline is the only route to deploy the fix, and CI is down.
+- The certificate was revoked, but one background client still trusts the old chain.
+- The AI advisor confidently recommends the wrong mitigation.
+- The CTO chooses between a controlled outage and uncontrolled compromise.
+
+The winning outcome is not "never experience an incident." It is "detect quickly, contain safely, recover reliably, communicate honestly, and learn something"—while the postmortem makes the CTO look deeply, deeply tired.

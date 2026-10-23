@@ -1,0 +1,84 @@
+PROJECT NAME
+============
+BLACK OCTOBER 2026: THE INCIDENT COMMAND SIMULATOR
+Subtitle: The Incident Command Simulator
+Repository/project context slug: black_oct_2026
+
+ONE-LINE PITCH
+==============
+A deterministic, skeuomorphic, satirical incident-response simulator in which the player is CTO and on-call incident commander for OmniSign Enterprise—a fragile B2B SaaS platform—scrambling to contain runaway cloud expenses, halt tenant database exfiltration, and survive the historic October 2026 cybersecurity collapse from a dual-pane browser and TUI cockpit.
+
+IN-UNIVERSE COMPANY & ARCHITECTURE
+==================================
+* Entity: OmniSign Enterprise (omnisign.corp), a high-stakes B2B SaaS provider that processes digital contract signatures, automated invoicing, and regulatory compliance webhooks for Tier-1 enterprise banks and government contractors.
+* Architecture Topology: An acquisition-heavy corporate frankenstack:
+  - Go Core (Signing Engine & x509 Trust Store)
+  - PHP 8.2 Portal (Legacy Change Advisory Board ticket queue and admin panel)
+  - Oracle Java SE / GraalVM (Enterprise SLA and contractual breach penalty engine)
+  - Node.js Service (Document thumbnail generation and Brotli decompression worker)
+  - NGINX Ingress (Edge reverse proxy and HTTP/3 gateway)
+  - Cloud PaaS Workers (Experimental LiteLLM AI contract summarizer and Postgres tenant store)
+* The Situation: It is late October 2026. Upstream certificate authorities, web runtimes, package registries, and CI/CD tools collapse simultaneously across the global tech ecosystem.
+
+TONE & SATIRE
+=============
+Darkly funny, technically grounded, affectionate systems-engineering masochism. The humour emerges from authentic operational friction and corporate dysfunction:
+* Early warning smoke signals surface on social media shitposts and CERT-In advisories minutes before internal monitors detect an anomaly.
+* Security patches cannot deploy because the internal CI/CD runner is itself compromised by an unauthenticated regex RCE.
+* Emergency hotfixes require Change Advisory Board (CAB) sign-off from vice presidents who are in transit or offline.
+* The tempting "quick fix" (such as disabling TLS verification or rotating the master database password without warning) triggers catastrophic secondary outages and regulatory penalties.
+* The public marketing status page stays proudly green at 99.99% uptime while production is completely dark.
+
+WIN AND LOSE CONDITIONS
+=======================
+* Victory Condition: Survive the shift until Sunday 23:59 in-game time with company solvency intact, Executive Trust above 0%, all critical CVEs declared and remediated, and zero tenant records or database credentials exfiltrated.
+* Failure Conditions:
+  - Bankruptcy / Insolvency: Compounding financial bleed (Java SLA breach fines + runaway AI token burn + cloud egress surges) exceeds the company's ₹500,000 cash runway.
+  - Termination / Fired: Executive Trust drops to 0% due to undeclared incidents, prolonged downtime, or excessive unauthorized emergency overrides.
+  - Catastrophic Breach: Attackers exfiltrate the synthetic tenant database vault and publish customer signing keys and contracts publicly.
+
+COCKPIT UI ARCHITECTURE
+=======================
+The player interacts with a single-screen desktop operations desk served by Node.js to your browser:
+
+1. PERSISTENT TOP HUD:
+   - Telemetry Bar: Sim Clock (e.g., Fri 18:20 IST), Executive Trust (0-100%), Active Undeclared CVEs, Compounding Financial Burn Rate (₹/hr).
+   - [Stack Inventory] Modal: Live manifest of all deployed production runtimes and versions (NGINX 1.25.3, PHP 8.2.14, Node v22.2.0, Go 1.25.1, Oracle JDK 17.0.9, @subql/common@5.8.3, litellm==1.107.0) used to cross-reference against incoming CVE advisories.
+   - [CFO Ledger] Modal: Live expense tracking (Compute baseline, compounding Java SLA fines, runaway AI token burn) and synthetic credential vault status (CLEAN, SUSPECTED_LEAK, ROTATED, EXFILTRATED).
+
+2. LEFT PANE — SIMULATED BROWSER:
+   - Tab 1: infosec.feed/live — Social media and CERT-In advisory ticker; early smoke signals break here first before internal monitors alert.
+   - Tab 2: gitlab.internal — Simulated CI/CD pipeline and runner status; stalls when runners or pipelines are compromised.
+   - Tab 3: console.cloud.internal — PaaS environment variable dashboard, worker status, and deployment locks.
+   - Tab 4: admin.corp.internal/cab.php — Legacy Change Advisory Board portal; lists pending tickets and houses the auditable Emergency RFC Override form.
+
+3. RIGHT PANE — DEDICATED TUI (OPS CONSOLE):
+   - Interactive terminal interface supporting authentic DevOps commands (diagnostics, mandatory incident declarations, container controls, and patch deployments).
+
+HARDWARE & OPERATIONAL ROLES
+============================
+Development/Control Workstation:
+- HP Victus 15, Windows 11, 16 GB RAM, 512 GB storage.
+- Used for coding, compilation, testing, LLM interactions, and running the browser cockpit client.
+
+Local Server:
+- HP 240 G4, Linux Mint Xfce, 4 GB RAM, 128 GB SSD.
+- Low-memory host running native processes over LAN/SSH.
+- Memory protection mandate: Docker daemons and containers are simulated in-game to eliminate virtualization overhead on physical hardware. Native processes keep host RAM usage under 1 GB.
+
+BUDGET AND DELIVERY
+===================
+- Timeline: One weekend sprint; playable end-to-end by Sunday night.
+- Budget: ₹0. No paid APIs, domain registrations, external hosting plans, or LLM token subscriptions required.
+- LAN-first and local-first. Remote hosting is an optional experiment, never a hard dependency.
+- Safe simulation only: 100% synthetic logs, mock credentials, and deterministic state transitions; no real exploits, network attacks, or malware are executed.
+
+DESIGN PRINCIPLES
+=================
+1. The Go simulation engine is the authoritative source of truth; state never mutates outside Go.
+2. Incidents have explicit preconditions, early warning signals, forensic evidence, trade-offs, and consequences.
+3. Every incident requires explicit declaration in the HUD before remediation is unlocked, enforcing operational discipline.
+4. The same scenario combined with the same player action sequence yields reproducible results.
+5. External or local LLMs, if integrated, function strictly as advisory assistants and postmortem generators; they never decide state.
+6. Every game session concludes with a generated postmortem markdown report containing timelines, financial tallies, and a satirical CTO performance review.
+7. Unrelated real-world October 2026 incidents serve as inspiration for separate scenario modules connected through architectural dependencies, not as a single global conspiracy.

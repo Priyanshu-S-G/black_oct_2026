@@ -1,0 +1,16 @@
+# Build output
+/blackoctober
+/blackoctober.exe
+/bin/
+/dist/
+
+# Go test / coverage artefacts
+*.test
+*.out
+coverage.*
+
+# Editor / OS noise
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

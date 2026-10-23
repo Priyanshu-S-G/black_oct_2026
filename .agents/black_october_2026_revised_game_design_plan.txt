@@ -1,0 +1,875 @@
+BLACK OCTOBER 2026: THE INCIDENT COMMAND SIMULATOR REVISED GAME DESIGN
+PLAN AND IMPLEMENTATION SPECIFICATION Project slug: black_oct_2026
+Document status: Reconciled proposal based on the project GDD,
+constraints notes, and the approved ChatGPT/Gemini architecture review.
+Owner: Human project owner / Incident Commander
+
+======================================================================
+0. PURPOSE, AUTHORITY, AND CHANGE POLICY
+======================================================================
+
+This document is the revised working plan for Black October 2026. It
+preserves the established game premise, fictional company, cockpit,
+incident lore, dependency traps, satirical tone, financial pressure,
+victory/failure conditions, and safe-simulation constraints while
+replacing the earlier multi-process implementation proposal with the
+approved single-process Go architecture.
+
+This is a design plan, not a claim that the repository or game has
+already been implemented.
+
+Source-of-truth policy: - The project owner has final authority over
+scope, game design, and trade-offs. - This document supersedes earlier
+implementation instructions where they conflict with the approved
+architecture below. - The fictional OmniSign production stack remains
+part of the game’s world. It is NOT a requirement to deploy those
+products as real local services. - The current implementation is
+deliberately smaller than the simulated world. - Do not silently remove
+incident beats, numbers, names, mechanics, or achievements. If a balance
+or contradiction needs resolving, flag it as an open decision rather
+than changing it invisibly. - Real-world incident/CVE references are
+scenario inspiration and must be tracked as research claims separately
+from fictional game mechanics. Do not imply a CVE identifier or incident
+detail has been verified merely because it appears in this design.
+
+====================================================================== 1.
+EXECUTIVE SUMMARY
+======================================================================
+
+Black October 2026 is a deterministic, skeuomorphic, darkly funny
+incident-response simulator. The player is the on-call CTO / Incident
+Commander for OmniSign Enterprise, a mid-sized B2B SaaS company
+providing digital signatures, automated contract compliance, and banking
+invoicing/webhooks to high-value enterprise customers.
+
+It is the third week of October 2026. Over a single disastrous shift,
+supply-chain poisoning, cryptographic trust failures, vulnerable
+runtimes, compromised CI/CD, and edge proxy failures create a cascade of
+operational emergencies.
+
+The player must: 1. Stop compounding financial losses from rogue AI
+token burn, synthetic cloud egress, and contractual SLA penalties. 2.
+Prevent exfiltration of synthetic tenant data, database connection
+strings, signing keys, and customer information. 3. Keep Executive Trust
+above zero while balancing correct engineering mitigations,
+change-control bureaucracy, and outages. 4. Declare incidents before
+remediation, investigate evidence, and make changes in a safe order. 5.
+Survive until the end of the shift and produce a deterministic,
+satirical executive postmortem.
+
+Tone: darkly funny, technically grounded, affectionate
+systems-engineering masochism. The humour comes from believable
+operational friction and corporate dysfunction—not random jokes detached
+from mechanics.
+
+Budget: ₹0. Offline/LAN-first. Weekend-sized MVP. No paid API, public
+hosting, domain, or external LLM is required.
+
+======================================================================
+2. NON-NEGOTIABLE PRODUCT PRINCIPLES
+======================================================================
+
+2.1 The game is a simulator The simulated OmniSign environment may
+display NGINX, Node.js, Go, PHP, Oracle Java, GitLab, cloud workers,
+Docker-like containers, Postgres, certificates, secrets, and banking
+gateways. These are modeled game entities and mock UI surfaces. They are
+not separate vulnerable services to install or exploit.
+
+2.2 One authoritative engine The Go simulation engine owns all game
+state and all consequences. Browser JavaScript renders the interface and
+sends player intent. It must not decide whether a patch succeeds,
+whether a credential was exposed, whether trust drops, or whether money
+is deducted.
+
+2.3 Deterministic rules, real-time pressure The simulation must be
+deterministic for a given initial scenario and ordered sequence of
+timestamped player actions. Normal play is paced by a wall-clock driver
+so financial bleed and incident deadlines continue while the player
+deliberates. Tests can advance simulation time directly without
+sleeping.
+
+2.4 One authoritative action path UI buttons and terminal commands must
+ultimately call the same engine validation and state-transition path.
+The terminal parser is in Go. The frontend must not maintain a second
+set of gameplay rules.
+
+2.5 Explicit incident declaration An active incident must be declared
+against the correct internal target before remediation commands for that
+target are unlocked. Undeclared incidents cause Management Blindness
+trust loss according to the configured game rule.
+
+2.6 Simulated commands are not a real shell Commands may resemble
+docker stop, cert-check, nginx -t, patch, or vault rotate, but they are
+parsed by a small Go command interpreter and mapped to safe game actions
+or queries. Never pass arbitrary player input to the host shell or
+os/exec.
+
+2.7 Weekend MVP before generality Build one complete playable incident
+chain before building a generic scenario interpreter or implementing all
+scenarios. Avoid unnecessary services, frameworks, databases,
+event-sourcing infrastructure, or abstractions.
+
+2.8 Honest operations The game should reward detecting quickly,
+containing safely, recovering reliably, and communicating honestly. A
+green status page or a technically green connection is not proof that
+the underlying risk has been resolved.
+
+======================================================================
+3. IN-UNIVERSE WORLD: OMNISIGN ENTERPRISE
+======================================================================
+
+OmniSign Enterprise is an acquisition-heavy corporate B2B SaaS platform.
+Its production environment is an enterprise “frankenstack” built from
+years of rushed acquisitions and feature pivots.
+
+Simulated production topology: - NGINX 1.25.3: edge reverse proxy,
+rewrite rules, HTTP/3 gateway. - Node.js v22.2.0: document thumbnail and
+Brotli decompression API/worker. - Go Core 1.25.1: signing engine and
+certificate trust store. - PHP 8.2.14: legacy admin, CAB ticket queue,
+and emergency override workflow. - Oracle JDK 17.0.9 / Java SLA
+calculator: enterprise contract and breach-penalty calculations. - Cloud
+PaaS workers: experimental LiteLLM AI contract summarizer and related
+workers. - Postgres tenant store: synthetic tenant records, connection
+strings, and customer data. - Self-hosted GitLab CI/CD: build, test, and
+deployment pipelines. - Banking gateways: synthetic enterprise mTLS
+webhook endpoints. - Marketing status page: intentionally unreliable
+signal that can remain green while production is unhealthy.
+
+These are simulated entities in the Go state model. They do not need to
+exist as separate local processes.
+
+======================================================================
+4. PLAYER EXPERIENCE AND COCKPIT
+======================================================================
+
+The player uses a desktop-style, single-screen operations cockpit with a
+persistent HUD, a simulated browser pane, and a dedicated terminal pane.
+
+4.1 Persistent HUD Display: - In-game date/time in IST. - Executive
+Trust (0–100%). - Count of active undeclared P0 incidents. - Current
+financial burn rate (₹/hr) and, where useful, cumulative damage. -
+Active alerts / severity. - [Stack Inventory] and [CFO Ledger]
+controls. - Clear pause/resume state and any chosen simulation-speed
+control, if included in MVP.
+
+4.2 Stack Inventory modal A live view of simulated deployed components
+and versions, including: - NGINX 1.25.3 - PHP 8.2.14 - Node.js v22.2.0 -
+Go 1.25.1 - Oracle JDK 17.0.9 - @subql/common@5.8.3 - litellm==1.107.0
+The player cross-references this inventory against advisories and
+forensic evidence to determine exposure. The inventory is generated from
+game state, not hardcoded separately in the frontend.
+
+4.3 CFO Ledger modal Show expense categories and cumulative totals: -
+Baseline compute: ₹1,200/hr. - AI gateway token burn: ₹45/hr baseline;
+rises to ₹12,000/hr during the rogue recursive loop. - Banking
+webhook/SLA penalties. The original GDD contains both ₹10,000/hr
+phrasing in the HUD/ledger description and ₹1,000 per in-game minute in
+the certificate incident. These values must be reconciled into explicit
+per-scenario rules before final balance tuning; do not silently assume
+they are identical. - Cloud egress, if activated by the scenario. -
+Current cash runway, starting at ₹500,000. - Synthetic secrets and their
+status: CLEAN, SUSPECTED_LEAK, ROTATED, EXFILTRATED.
+
+The ledger must derive from engine state and elapsed simulation time. It
+is not a decorative counter.
+
+4.4 Simulated browser tabs A. infosec.feed/live - CERT-In-like
+advisories, researchers, social posts, and satirical noise. - Early
+warning smoke signals surface here before internal monitoring catches
+up. - Feed items are scenario events and clues, not arbitrary live
+internet content.
+
+B. gitlab.internal/infra/pipelines - Pipeline stages, runner status,
+artifact version, test results, deployment status, and synthetic logs. -
+Can fail when the modeled CI infrastructure is compromised.
+
+C. console.cloud.internal/env - Synthetic environment variables, worker
+instances, deployment locks, and pause/isolation controls. - Secrets
+must be masked or represented as synthetic placeholders; never use real
+credentials.
+
+D. admin.corp.internal/cab.php - Deliberately ugly, bureaucratic,
+2008-era interface. - Shows patch tickets and AWAITING_VP_APPROVAL
+status. - Includes an RFC Emergency Override form. The form records a
+justification, bypasses change-freeze locks, and carries Executive Trust
+consequences.
+
+E. Marketing status page - May be shown as a mock status surface or as a
+feed item. - Can remain green while production is down because it checks
+an isolated static mock. This is a deliberate lesson about misleading
+health checks.
+
+4.5 Dedicated terminal / TUI The terminal should feel operationally
+authentic but is not a real operating-system terminal. The Go parser
+supports a deliberately small, documented grammar.
+
+Initial command families: - status, services - curl -I <endpoint>
+(simulated endpoint check) - nginx -t (simulated configuration
+validation) - cert-check --target <service> or equivalent certificate
+verification query - openssl verify ... only to the extent needed as a
+safe simulated alias - npm audit, pip list (synthetic inventory/lockfile
+queries) - incident declare <CVE-ID> <TARGET_SERVICE> (must use the same
+declaration logic as the HUD) - patch <service> / limited
+apt-get upgrade <runtime> aliases - docker stop <worker> (simulated
+worker isolation) - vault rotate <KEY_NAME> - Additional
+scenario-specific commands only when the corresponding mechanic exists.
+
+Do not build a general-purpose shell, shell expansion, pipes,
+redirection, command substitution, arbitrary filesystem access, or
+arbitrary command execution. Unknown commands should return clear, safe
+error output.
+
+======================================================================
+5. CORE GAMEPLAY LOOP
+======================================================================
+
+Every incident follows the established five-stage lifecycle:
+
+1.  SMOKE SIGNAL A feed alert or anomalous CFO Ledger reading appears.
+    Internal monitoring may lag behind public disclosure.
+
+2.  MANDATORY INCIDENT DECLARATION The player maps the advisory/CVE to
+    the correct internal service using the HUD Incident Manager or
+    terminal command. Both routes invoke the same engine function.
+
+If an active incident remains undeclared: - Executive Trust bleeds 2%
+per configured tick due to “Management Blindness”. - Remediation
+commands for the affected target remain locked with an error such as
+ERROR: No active change ticket for target resource. - The precise
+meaning and cadence of “tick” must be defined by the simulation time
+contract in Section 7; do not implement trust loss as an uncontrolled
+goroutine side effect.
+
+3.  FORENSIC CROSS-REFERENCING The player:
+
+-   Compares feed advisories against Stack Inventory.
+-   Uses terminal diagnostics to check affected services, certificates,
+    versions, and workers.
+-   Reviews the CFO Ledger for token burn, egress, and SLA damage.
+-   Identifies dependencies and the order in which remediation must
+    occur.
+
+4.  BUREAUCRATIC REMEDIATION
+
+-   Patches that change production runtime versions require an approved
+    CAB ticket unless an emergency override is used.
+-   Some containment actions, such as pausing deployment or isolating a
+    worker, may be allowed before a patch ticket is approved. The
+    scenario rules define which actions are containment versus
+    production change.
+-   Waiting for approvers can cost simulated time and SLA money.
+-   Emergency override bypasses change-freeze friction but costs
+    Executive Trust and may create audit consequences.
+-   The interface must explain why a blocked action is blocked.
+
+5.  CASCADING CONSEQUENCES Incorrect ordering, untested changes,
+    uncoordinated credential rotation, or unsafe shortcuts trigger
+    modeled consequences. The engine—not the UI—evaluates them.
+
+======================================================================
+6. SCENARIO DESIGN
+======================================================================
+
+Scenario architecture should be content-driven eventually, but the first
+scenario is implemented as a typed Go fixture. The game does not begin
+with a generic YAML rules interpreter. Introduce scenario files only
+when the first scenario has stabilized and extracting data will
+genuinely simplify authoring later scenarios.
+
+Scenario content should distinguish: - Initial scenario configuration. -
+Current mutable game state. - Player actions and queries. - Scheduled
+future events. - Recorded game events / audit history. - Public snapshot
+data shown to the player.
+
+Real-world inspiration is separate from game mechanics. Keep a research
+ledger for each external incident/CVE reference with status such as
+verified, reported, screenshot-only, hypothetical, or research-pending.
+This document preserves existing IDs and lore but does not certify their
+real-world accuracy.
+
+6.1 Scenario 1 — Supply Chain Poisoning & the Expense Spiral Inspiration
+in the current design: - LiteLLM PyPI compromise (v1.107.0). - SubQuery
+npm compromise (@subql/common@5.8.3). - Railway-style
+environment-variable exposure.
+
+Progression: 1. Feed reports that @subql/common and litellm==1.107.0
+have been pulled from registries because of malicious post-install
+hooks. 2. CFO Ledger shows AI token burn rising from ₹45/hr to
+₹12,000/hr; synthetic network egress spikes. 3. A poisoned LiteLLM
+worker enters an unauthenticated recursive loop and begins exfiltrating
+worker environment variables. 4. Synthetic DATABASE_PROD_URL and
+STRIPE_LIVE_SECRET become SUSPECTED_LEAK.
+
+Dependency trap: If the player immediately rotates DATABASE_PROD_URL,
+the database password changes before dependent services are prepared.
+The Go signing service and PHP portal lose database connectivity,
+causing a major outage and rapidly increasing SLA penalties.
+
+Intended safe sequence: 1. Pause AI worker deployments in the Cloud tab.
+2. Isolate the worker with the simulated command docker stop worker-ai.
+3. Pin the safe package version in CI (litellm==1.106.0). 4.
+Build/deploy a clean artifact through the modeled pipeline. 5. Perform
+coordinated secret rotation and update dependent services. 6. Verify
+that the old secret is no longer accepted and the new secret is in use.
+
+MVP acceptance: - Feed clue appears. - Runaway burn is visible and
+time-dependent. - Incident declaration is required for the correct
+target. - Worker isolation changes state and stops or reduces the
+runaway burn according to the rules. - Premature secret rotation
+produces the dependency outage. - Safe sequence reduces risk and
+completes credential rotation. - Same initial state and action sequence
+produce the same result.
+
+6.2 Scenario 2 — Cryptographic Trust Collapse Inspiration in the current
+design: - eMudhra/emSign intermediate CA low-entropy key issue. - Go
+crypto/x509 denylist behavior. - Identifiers retained from the source:
+CVE-2026-111943 and GO-2026-6809.
+
+Progression: 1. Root programs revoke eight intermediate CAs said in the
+scenario lore to have been generated with small P-384 private keys. 2.
+OmniSign banking clients use those intermediates for mTLS webhook
+delivery. 3. Bank connections fail with CERT_REVOKED. 4. The modeled
+Java SLA calculator applies a ₹50,000 lump penalty plus ₹1,000 per
+in-game minute of webhook failure, unless the owner later approves a
+balance change.
+
+Unsafe shortcut: Setting TLS_VERIFY_PEER=false or using curl -k may
+appear to restore traffic, but the compliance audit fires within 60
+seconds and applies a ₹500,000 regulatory penalty. The player unlocks:
+“Certificate Verification Disabled: Problem Solved (No)”
+
+Intended safe sequence: 1. Declare the incident. 2. Install the updated
+CA bundle into the simulated trust store. 3. Update the Go verification
+denylist. 4. Restart/bounce the signing worker. 5. Verify the clean
+handshake.
+
+6.3 Scenario 3 — Pipeline Blackout & Patch Tuesday Inspiration in the
+current design: - PHP2Shell (CVE-2026-109618). - Node.js Brotli RCE
+(CVE-2026-111497). - GitLab unauthenticated RCE (CVE-2026-110264).
+
+Progression: 1. Attackers probe the legacy PHP CAB portal and Node.js
+document-preview workers using modeled malicious requests. 2. Player
+prepares runtime upgrades. 3. GitLab pipeline stalls at 0% with
+Runner Error 500: Host Unreachable because the simulated CI service is
+compromised. 4. Normal deployment is blocked.
+
+Decision: - Spend 15 minutes of simulation time isolating and patching
+GitLab CI, then use the pipeline normally; or - Use the CAB Emergency
+RFC Override and deploy unverified manual binary hotfixes through safe,
+simulated TUI actions, taking an Executive Trust penalty and any
+scenario-defined audit risk.
+
+No real payloads or vulnerable services are used.
+
+6.4 Scenario 4 — Edge Proxy Sabotage Inspiration in the current
+design: - NGINX buffer overflow and HTTP/3 request-body injection
+(CVE-2026-15176, CVE-2026-95101).
+
+Progression: 1. A modeled alias/rewrite flaw routes malicious requests
+to synthetic internal management ports. 2. Player edits the simulated
+NGINX configuration and requests a reload. 3. Invalid syntax, a missing
+semicolon, or a bad upstream port disables simulated reverse-proxy
+routing and disconnects the browser cockpit from the engine endpoint. 4.
+The public Marketing Status Page remains green because its mock health
+check pings an isolated static object.
+
+Achievement: “Everything Is Down Except the Status Page” / “Green Status
+Page, Red Everything Else”. Preserve the project’s chosen achievement
+label when the final achievement list is consolidated.
+
+Design requirement: The proxy failure is a game-state/connection
+simulation, not permission to modify the real local NGINX configuration.
+Provide a recovery path or local reset/reconnect method so a simulated
+console outage cannot permanently strand the player or require a restart
+with lost progress.
+
+6.5 Optional extensions — not MVP commitments - Oracle Java SE / GraalVM
+compatibility and patch triage (CVE-2026-91403 in existing notes). -
+Microsoft QUIC / banking gateway HTTP/3 trade-off (CVE-2026-105016 in
+existing notes). - Linux kernel sandbox-escape scenario (CVE-2026-99999,
+described in the existing notes as PwnEscape).
+
+These are deferred until the core game loop and all required MVP
+acceptance criteria work. IDs and descriptions remain research-pending
+until independently verified.
+
+======================================================================
+7. APPROVED TECHNICAL ARCHITECTURE
+======================================================================
+
+7.1 Actual implementation stack - One Go process is the default MVP
+architecture. - Go owns simulation state, rules, scenario fixture,
+simulated clock, scheduled events, action history, metrics, and
+postmortem generation. - The same Go process serves the HTTP API and
+static cockpit assets. - Frontend: plain HTML, CSS, and vanilla
+JavaScript initially. No framework unless an observed requirement
+justifies one. - No separate Node.js, PHP, Java, NGINX, database server,
+Docker daemon, or simulated worker process is required for the MVP. -
+The architecture can later be split only if a demonstrated need
+justifies it. Do not recreate the fictional stack as real local
+services.
+
+7.2 Logical boundaries inside the one process -
+cmd/blackoctober/main.go: flags, startup, shutdown. - internal/app:
+configuration and lifecycle wiring. - internal/game: authoritative
+state, actions, rules, simulated time, event ordering, command parsing,
+scenario fixture, and tests. - internal/web: HTTP routes, request
+validation, response DTOs, static assets, and handler tests. - webui:
+HTML/CSS/JS presentation assets. - docs/architecture.md: architecture
+and contract decisions. - Keep this layout lean. Files listed are
+responsibilities, not a demand to create empty placeholders before
+needed.
+
+7.3 Suggested repository scaffold black_oct_2026/ README.md .gitignore
+.editorconfig go.mod cmd/blackoctober/main.go internal/ app/app.go
+game/state.go game/engine.go game/actions.go game/command.go
+game/clock.go game/rules.go game/fixture.go game/engine_test.go
+web/server.go web/handlers.go web/static.go web/handlers_test.go webui/
+index.html styles/main.css scripts/app.js scripts/api.js
+scripts/terminal.js scripts/render.js docs/architecture.md
+
+Add files only when the implementation needs them. Do not create
+placeholder packages to make the tree look complete.
+
+7.4 Static asset development/release seam - Development mode serves
+HTML/CSS/JS directly from the webui directory so browser refreshes pick
+up changes without rebuilding the Go binary. - Release mode serves
+assets embedded in the binary using Go embed. - Disk serving does not
+promise hot module replacement; a browser refresh is sufficient. - Make
+the asset mode explicit through a -dev flag or configuration value.
+Ensure release mode does not accidentally depend on the working
+directory.
+
+7.5 HTTP API contract Initial endpoints: - GET /api/health: process
+health. - GET /api/game: safe public snapshot. - POST /api/game/new:
+create a fresh deterministic run. - POST /api/game/actions: submit a
+typed action from a UI control. - POST /api/game/command: submit a raw
+simulated terminal command for Go parsing.
+
+Do not add WebSockets, SSE, login systems, multiplayer, cloud saves, or
+a database in the initial slice. Polling is sufficient for ongoing HUD
+updates.
+
+7.6 Immediate response snapshot contract Every accepted or rejected
+action/command response should be structured. On a successful mutation,
+the response includes the result and the post-action snapshot, generated
+after the state transition has completed. Example shape:
+
+{ “success”: true, “output”: [ “[CONTAINED] Worker worker-ai
+successfully isolated.” ], “state_version”: 17, “state”: { “…”:
+“detached public game snapshot” } }
+
+For errors, return a clear error code/message and, where useful, the
+current snapshot/version. Do not leak hidden future events or internal
+mutable state.
+
+Frontend synchronization rule: - Every snapshot carries a monotonically
+increasing state_version within the run. - The frontend applies a
+snapshot only if it belongs to the current run and its version is not
+older than the latest applied version. - Poll responses must not
+overwrite a newer action response. - Starting a new run changes the run
+identifier; responses from the previous run must be ignored. -
+Versioning is for ordering/synchronization, not a substitute for
+engine-side serialization.
+
+7.7 Single authoritative action path - UI controls submit typed
+actions. - Terminal input submits a string to POST /api/game/command. -
+The Go command parser translates a small supported grammar into typed
+actions or read-only queries. - Both paths invoke the same engine
+validation and state-transition functions. - Do not implement game rules
+in JavaScript or make the terminal a separate rules engine. - Keep
+parsing separate from rule application even if they initially share the
+internal/game package.
+
+7.8 Structured terminal responses Return structured output lines and
+result metadata rather than making ANSI escape sequences the only output
+contract. Example fields may include success, output, severity,
+error_code, state_version, and state. The frontend may style output by
+severity. Raw ANSI support is not required for MVP.
+
+7.9 Deterministic engine and real-time driver The engine itself must not
+read wall-clock time or run its own uncontrolled ticker. It exposes
+deterministic operations such as Advance(duration) / Tick(n) that
+process simulation time and scheduled events.
+
+A separate wall-clock driver in the same process: - Measures elapsed
+real time. - Converts elapsed wall time into requested simulation-time
+advancement. - Requests advancement from the engine through the same
+serialized state-transition mechanism. - Can be paused and resumed
+according to game rules. - Does not mutate state independently.
+
+Initial pacing proposal from the review: 1 wall-clock second = 1 in-game
+minute (60x acceleration). This is a proposed default, not an
+unchangeable truth. Validate the actual shift length and player workload
+before finalizing. A full Friday-to-Sunday timeline at that scale is far
+too long for a single sitting if interpreted literally; the game clock
+may instead begin at a scenario-specific time and run to Sunday 23:59
+only if that duration is playable. Resolve this pacing/time-window
+conflict before the first end-to-end test.
+
+Time rules: - All financial rates use explicit units, such as rupees per
+simulated hour. - Scheduled events are processed at their exact
+simulated timestamps. - Equal-time events use a stable, documented
+tie-break order. - Actions receive a defined simulation timestamp and
+sequence number. - Tests can advance time without sleeping. - Pause
+freezes automatic time advancement; it must not secretly alter game
+state. - Advancing across rate changes processes the correct
+intervals. - A failed action has no partial effects unless the scenario
+explicitly defines a partial outcome. - Same initial scenario plus same
+timestamped action sequence yields the same outcomes. - Any future
+randomness must be seeded and the seed persisted in the run record.
+
+Important timing decision: The original design says undeclared incidents
+lose 2% trust “per tick”, while Gemini’s review describes the burn as a
+per-tick effect. Define a gameplay interval or scheduled recurring event
+for this penalty. Do not tie game balance to CPU scheduling or HTTP
+polling frequency.
+
+7.10 Concurrency and snapshots - All game mutations must be
+serialized. - A mutex-protected engine is acceptable; a single-owner
+command loop is also acceptable if kept simple. - Choose the simplest
+safe design. Do not adopt RWMutex solely on assumption of performance
+benefits. - Never expose internal mutable maps, pointers, or slices. -
+Snapshot() returns a detached public representation created consistently
+with one state version. - Add race-enabled tests (go test -race ./...)
+once the engine has concurrent polling and wall-clock pacing. - The
+snapshot and its version must represent the same point in the
+simulation.
+
+7.11 Persistence - In-memory game state for the first playable slice. -
+Keep engine state independent of HTTP DTOs so persistence can be added
+later. - No database server or save/load system is required for MVP. -
+If durable save slots or run history become necessary after the core is
+playable, consider local SQLite. Do not add it preemptively. - Full
+event sourcing is out of scope. Keep a normal action/event history
+sufficient for the postmortem.
+
+7.12 Static UI update strategy - Poll GET /api/game approximately once
+per second during active play. - After an action/command response,
+render its included snapshot immediately. - Ignore stale snapshots using
+run ID and state_version. - Do not add SSE/WebSockets unless polling
+demonstrably causes a problem. - If the simulated NGINX scenario
+disconnects the cockpit, model the disconnection as a recoverable game
+effect; do not break the actual HTTP server or edit the host proxy.
+
+======================================================================
+8. GAME STATE AND EVENT MODEL
+======================================================================
+
+Use explicit concepts; do not collapse them into one generic event
+structure.
+
+-   Scenario fixture/definition: initial configuration and
+    scenario-specific parameters.
+-   GameState: mutable state for one run.
+-   Player Action: validated player intent (e.g., isolate a worker).
+-   Scheduled Event: future event due at a simulation timestamp.
+-   Game Event: record that something happened (e.g., WorkerIsolated).
+-   Snapshot: detached public view for the browser.
+-   Action history: accepted/rejected player operations with simulation
+    time and outcome.
+-   Audit/feed history: clues, notifications, and consequences shown to
+    the player.
+
+Candidate state fields: - RunID and StateVersion. - Run status: running,
+paused, won, lost. - Simulated clock and configured pacing. - Cash
+runway and financial ledger categories. - Executive Trust. -
+Service/runtime inventory and health. - Incident records, declaration
+state, severity, target, and remediation state. - Synthetic secrets and
+their statuses. - Worker state and deployment lock state. - CAB tickets,
+approval status, and emergency overrides. - CI pipeline state and
+artifact versions. - Certificate/trust-store state. - Proxy
+configuration state. - Scheduled events, feed entries, action history,
+and achievements.
+
+The public snapshot must contain only information the player is allowed
+to know. Do not expose future scheduled events if discovering them is
+part of gameplay.
+
+======================================================================
+9. END CONDITIONS, SCORING, AND POSTMORTEM
+======================================================================
+
+9.1 Game over conditions - Bankruptcy: total accrued losses exceed the
+₹500,000 cash runway. - Termination: Executive Trust reaches 0% because
+of undeclared incidents, prolonged outages, or excessive emergency
+overrides. - Catastrophic breach: the synthetic tenant database is fully
+exfiltrated and published to the feed.
+
+9.2 Victory condition — “Surviving the Shift” The clock reaches Sunday
+23:59 IST; the company remains solvent; all P0 vulnerabilities are
+declared, contained, and patched; synthetic credentials are fully
+rotated; and no tenant records or database credentials have been
+exfiltrated.
+
+9.3 Postmortem At the end of a run, the Go engine generates an
+exportable POSTMORTEM.md from recorded actions, events, missed signals,
+and ledger deltas. It should include: - Incident timeline. - Mean Time
+to Detect (MTTD). - Mean Time to Contain (MTTC). - Total financial
+damage, with categories. - Executive Trust remaining. - Synthetic
+database exfiltration outcome. - Secret rotation integrity. - Emergency
+overrides, missed signals, unsafe shortcuts, and dependency failures. -
+Achievements unlocked. - A deterministic satirical CTO performance
+review based on the run’s recorded behavior.
+
+The postmortem must be reproducible from the run data. If an LLM is ever
+used to embellish wording, it must not calculate metrics or change
+outcomes. The baseline report must work offline without an LLM.
+
+Preserve achievement concepts: - “Restarting the Database Is Not a
+Personality” - “We Have Rotated Zero Secrets” - “The AI Consultant Has
+Your Keys” - “Certificate Verification Disabled: Problem Solved (No)” -
+“Green Status Page, Red Everything Else” / “Everything Is Down Except
+the Status Page” - “Congratulations, You Have Become the Single Point of
+Failure”
+
+Resolve duplicate/variant achievement wording in a later content pass
+rather than silently deleting an established joke.
+
+======================================================================
+10. IMPLEMENTATION PLAN AND MILESTONES
+======================================================================
+
+The priority is a playable end-to-end vertical slice, not a broad but
+hollow scaffold.
+
+PHASE 0 — Confirm contracts (before implementation) - Confirm the
+simulation time model, start time, end time, pacing ratio, pause
+behavior, and action ordering. - Define exact financial rate units and
+reconcile the differing SLA rate descriptions. - Define what “per tick”
+means for Executive Trust loss. - Confirm the exact public DTO fields,
+run ID, and state-version semantics. - Confirm the first scenario’s
+minimum playable success/failure path.
+
+PHASE 1 — Deterministic Go core - Create the minimal Go module and
+entrypoint. - Define state, typed actions, deterministic clock
+advancement, scheduled events, and snapshot. - Implement serialized
+state transitions. - Implement the Scenario 1 fixture directly in Go. -
+Test deterministic advancement, financial accrual, declaration gates,
+and failed-action atomicity.
+
+PHASE 2 — Scenario 1 end-to-end - Implement feed clue and initial
+poisoned package state. - Implement runaway AI token burn and synthetic
+egress. - Implement declaration and correct-target validation. -
+Implement worker isolation, safe version pinning/deployment, and
+coordinated credential rotation. - Implement the premature rotation
+dependency trap. - Ensure the same action sequence yields the same state
+and history.
+
+PHASE 3 — Minimal HTTP API - Add health, snapshot, new-run,
+typed-action, and terminal-command endpoints. - Return post-action
+snapshots and state versions. - Test malformed input, unknown commands,
+invalid actions, and snapshot correctness. - Keep HTTP handlers thin;
+all game rules remain in the engine.
+
+PHASE 4 — Cockpit UI - Build the persistent HUD and two-pane layout. -
+Add browser tabs, Stack Inventory, CFO Ledger, and terminal output. -
+Implement one-second polling and immediate action-response rendering. -
+Reject stale responses using run ID and state version. - Serve assets
+from disk in development; embed them for release. - Keep the UI
+functional with only the core Scenario 1 mechanics.
+
+PHASE 5 — Pacing and resilience - Add wall-clock driver that requests
+deterministic time advancement. - Implement pause/resume if approved for
+gameplay. - Test rate accrual across event boundaries and concurrent
+snapshot requests. - Test the simulated proxy-disconnection recovery
+path. - Run race detection.
+
+PHASE 6 — Scenario expansion - Add Scenarios 2–4 only after Scenario 1
+is playable and tested. - Reuse the same action, event, clock, CAB,
+ledger, and incident-declaration systems. - Add scenario-specific rules
+without building a generic interpreter prematurely. - Introduce YAML
+only if the stabilized scenario data shape and content iteration justify
+it.
+
+PHASE 7 — End conditions and report - Implement bankruptcy, termination,
+breach, and victory checks. - Generate POSTMORTEM.md from run records. -
+Add achievements and deterministic performance-review templates.
+
+PHASE 8 — Delivery verification - Run gofmt and go test ./.... - Run
+go vet ./.... - Run go test -race ./... where supported. - Test a fresh
+run, a full Scenario 1 run, a failed action, time advancement across an
+event, and stale-response rejection. - Confirm the game is playable
+offline. - Confirm the actual runtime stack is small and uses no Docker
+daemon. - Document launch instructions and known limitations.
+
+Scope rule: If the weekend deadline is threatened, cut optional
+scenarios, fancy animations, audio alerts, advanced telemetry, and
+generic scenario loading before cutting determinism, the core incident
+loop, state synchronization, or a complete playable Scenario 1.
+
+======================================================================
+11. TESTING AND ACCEPTANCE CRITERIA
+======================================================================
+
+Engine tests: - New game initializes the same known state. - Identical
+timestamped action sequences yield identical state and event history. -
+Correct incident declaration unlocks only the intended target. - Wrong
+target or unknown action is rejected without partial mutation. -
+Undeclared active incidents apply trust loss at the configured simulated
+cadence. - Worker isolation stops or reduces the correct financial
+bleed. - Financial totals are correct across rate changes and scheduled
+events. - Scheduled events fire exactly once and in stable order. -
+Premature secret rotation triggers the specified dependency outage. -
+Safe credential rotation updates dependent simulated services. -
+Bankruptcy, termination, catastrophic breach, and victory checks are
+consistent.
+
+API tests: - Invalid JSON and unknown commands return structured errors,
+not crashes. - Action responses contain the post-action snapshot and
+matching state_version. - Snapshot version and data correspond to the
+same engine state. - Old run responses are not applied after starting a
+new run. - Stale polling snapshots cannot overwrite newer action
+responses. - A rejected action does not accidentally mutate state.
+
+Concurrency tests: - Snapshot requests during time advancement do not
+race or panic. - go test -race ./... reports no data races in supported
+test paths. - No caller can mutate internal engine state through a
+returned snapshot.
+
+UI smoke tests: - HUD, feed, stack, ledger, CAB, and terminal all
+reflect the same engine state. - A successful command updates terminal
+output and HUD immediately from the same response. - Polling continues
+to update ongoing bleed. - Simulated proxy failure has a recoverable
+path. - Fresh run resets all run-specific state.
+
+======================================================================
+12. SAFETY, PRIVACY, AND OPERATIONAL CONSTRAINTS
+======================================================================
+
+-   Use synthetic logs, fictional customers/domains/IPs, and mock
+    credentials only.
+-   No real exploits, malware, credential harvesting, public scanning,
+    or production-system disruption.
+-   No arbitrary shell execution from terminal input, browser commands,
+    or LLM suggestions.
+-   No real private keys, API keys, personal data, or customer data in
+    game logs.
+-   Do not expose the low-memory HP 240 G4 to the public internet by
+    default.
+-   No Docker daemon or real container stack is required.
+-   Keep the actual host stack native and lightweight. The approved
+    single-process Go MVP should remain well below the project’s 1 GB
+    total runtime budget.
+-   Do not disable TLS verification as a real mitigation. The unsafe
+    setting exists only as a simulated trap.
+-   Keep simulated incident logs separate from actual machine logs.
+-   External LLMs, if ever integrated, are advisory only and cannot
+    mutate game state, determine outcomes, or be required for offline
+    play.
+-   Avoid new dependencies unless their benefit is clear and approved.
+
+======================================================================
+13. AI TEAM COORDINATION
+======================================================================
+
+Human owner: - Owns product decisions, scope, creative direction,
+balance, acceptance, and final merge approval.
+
+ChatGPT Go — Tech Lead / Architect: - Maintains architecture and API
+contracts. - Breaks work into bounded tasks. - Reviews state
+transitions, determinism, integration, and test evidence. - Does not
+expand the real runtime stack or make product decisions unilaterally.
+
+Gemini Pro — Systems Analyst / Design Reviewer: - Independently reviews
+architecture and failure modes. - Provides counterarguments, test cases,
+and explicit trade-offs. - Does not silently replace approved decisions.
+
+AntiGravity Pro — Implementation Engineer / Integration Owner: - Sole
+active repository editor unless ownership is explicitly transferred. -
+Inspects repository before editing. - Implements only the approved
+bounded task, adds tests, runs checks, and reports exact results. - Does
+not add dependencies or expand scope without approval.
+
+Claude Free — Specialist / Second-Pass Reviewer: - Handles narrow
+reviews, test ideas, debugging hypotheses, and isolated tasks. - Does
+not concurrently edit the same files as AntiGravity.
+
+Handoff template: Task: Context/source files: Current behavior: Expected
+behavior: Constraints: Acceptance criteria: Tests/checks: Files allowed
+to change: Out of scope: Required report: files changed;
+decisions/assumptions; commands and exact results; tests added/updated;
+known limitations; suggested follow-up.
+
+One active editor rule: Only one AI owns repository edits at a time.
+Other agents provide reviews or proposed changes until ownership is
+explicitly transferred.
+
+======================================================================
+14. OPEN DECISIONS THAT MUST NOT BE SILENTLY GUESSED
+======================================================================
+
+1.  TIME AND SESSION LENGTH The current concept spans Friday to Sunday
+    23:59 IST, but the suggested 1 real second = 1 game minute would
+    make a multi-day in-game shift last many real hours. Decide whether:
+
+-   the playable scenario starts later in the timeline and ends at a
+    shorter defined deadline;
+-   time scaling changes over the session;
+-   or the “shift” is a compressed incident window whose final in-game
+    label still references Sunday 23:59. This is a gameplay decision,
+    not just a technical detail.
+
+2.  PAUSE POLICY Can the player pause? Does pause freeze all
+    consequences? Is pause available only outside a scored run or also
+    during normal play? Pick a clear policy before implementing pacing.
+
+3.  TRUST DECAY CADENCE Define “2% per tick” in minutes or as a
+    scheduled recurring event. It must not depend on polling rate or CPU
+    scheduling.
+
+4.  SLA RATE CONSISTENCY The source material mentions ₹10,000/hr for
+    each minute of failed bank webhooks in one HUD description, and
+    ₹1,000 per in-game minute in the certificate incident. Confirm
+    whether these refer to different penalties or one conflicting value.
+
+5.  CASH RUNWAY VS. REGULATORY PENALTY A ₹500,000 regulatory penalty
+    equals the stated ₹500,000 cash runway by itself. Decide whether
+    this is intentionally an immediate bankruptcy trap or whether the
+    penalty is booked differently. Preserve the trap unless the owner
+    approves a balance adjustment.
+
+6.  PROXY SCENARIO RECOVERY Define how the player recovers if the
+    simulated proxy disconnects the cockpit: built-in local recovery
+    route, simulated direct console, or restart/resume. Do not let a
+    simulated outage strand the actual engine.
+
+7.  INCIDENT ORDER AND SCOPE The original pitch suggests a global
+    cascade; the game-design notes say unrelated real-world incidents
+    should remain separate scenario modules linked through architectural
+    dependencies, not a single global conspiracy. Preserve that
+    distinction: the fictional game can have overlapping operational
+    incidents, but the narrative must not assert one real-world actor or
+    conspiracy unless the owner deliberately chooses that fiction.
+
+8.  RESEARCH STATUS OF REAL-WORLD REFERENCES Maintain a source ledger
+    for each real-world inspiration and CVE. Verify independently before
+    presenting a reference as a factual event. Keep fictionalized
+    mechanics clearly labeled as game logic.
+
+9.  FIRST RELEASE SCOPE Recommended MVP: Scenario 1 end-to-end, complete
+    cockpit skeleton, deterministic clock/driver, command parser,
+    snapshots/versioning, game-over basics, and postmortem foundation.
+    Scenarios 2–4 should be added only if time remains after the
+    vertical slice is stable.
+
+======================================================================
+15. DEFINITION OF DONE
+======================================================================
+
+The MVP is done when: - A user can launch the game locally without
+Docker or external services. - A new run starts in a known, reproducible
+state. - The player sees the feed clue and financial bleed. - The player
+must declare the incident before target remediation. - The player can
+investigate through the stack inventory, ledger, and terminal. - Correct
+and incorrect remediation sequences produce distinct, deterministic
+consequences. - The browser’s immediate action response and background
+polling cannot regress state due to stale snapshots. - The game advances
+under the approved pacing model and tests can advance time instantly. -
+The player can complete or lose the first scenario. - The game produces
+a postmortem from recorded run data. - Tests and launch instructions are
+provided, and no unverified claims are made about test results. - The
+simulated OmniSign stack remains simulated; the actual runtime stack
+remains small, safe, and offline-capable.
+
+END OF REVISED GAME DESIGN PLAN
